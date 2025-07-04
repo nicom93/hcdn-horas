@@ -327,11 +327,11 @@ function App() {
     <div className="app-bg">
       <div className="main-container">
         {/* Header Principal */}
-        <div className="main-header">
+        {/* <div className="main-header">
           <h1 className="main-title">Tracker de Horas Semanales</h1>
           <p className="main-subtitle">Registra tus horas de trabajo y monitorea tu progreso semanal</p>
           <p className="current-date">{formatCurrentDate()}</p>
-        </div>
+        </div> */}
 
         {/* Navegación de Semanas */}
         <div className="week-navigation">
