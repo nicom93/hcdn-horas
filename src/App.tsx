@@ -8,7 +8,6 @@ import AuthForm from './components/AuthForm';
 import { useAuth } from './hooks/useAuth';
 import './App.scss';
 
-// Componente principal de la aplicación autenticada
 const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displayName?: string } }) => {
   const { logout } = useAuth();
   const [currentWeek, setCurrentWeek] = useState<WeekRecord | null>(null);
@@ -18,11 +17,10 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
   const [editingDay, setEditingDay] = useState<DayRecord | null>(null);
   const [editEntryTime, setEditEntryTime] = useState('');
   const [editExitTime, setEditExitTime] = useState('');
-  // Estados para registrar días nuevos
   const [entryTime, setEntryTime] = useState('');
   const [exitTime, setExitTime] = useState('');
 
-  // Cargar semana actual y día actual al iniciar
+  // cargar la semana cuando arranca
   useEffect(() => {
     const loadWeek = async () => {
       const weekInfo = getCurrentWeekInfo();
@@ -31,45 +29,40 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
         ? getTodayLocalDate()
         : weekInfo.startDate;
       let week = await firebaseService.getCurrentWeek(weekInfo.year, weekInfo.weekNumber, user.uid);
-      if (!week) {
-        // Crear semana vacía
-        const newWeek: Omit<WeekRecord, 'id'> = {
-          weekNumber: weekInfo.weekNumber,
-          year: weekInfo.year,
-          startDate: weekInfo.startDate,
-          endDate: weekInfo.endDate,
-          totalHours: 0,
-          completedDays: 0,
-          absentDays: 0,
-          remainingHours: REQUIRED_WEEKLY_HOURS,
-          days: [],
-          userId: user.uid
-        };
-        const weekId = await firebaseService.createWeek(newWeek, user.uid);
-        week = { ...newWeek, id: weekId };
-      }
-      setCurrentWeek(week);
-      setSelectedDate(todayStr);
-      // Cargar registro del día seleccionado
-      const day = await firebaseService.getDayByDate(todayStr, user.uid);
-      setSelectedDayRecord(day);
+              if (!week) {
+          const newWeek: Omit<WeekRecord, 'id'> = {
+            weekNumber: weekInfo.weekNumber,
+            year: weekInfo.year,
+            startDate: weekInfo.startDate,
+            endDate: weekInfo.endDate,
+            totalHours: 0,
+            completedDays: 0,
+            absentDays: 0,
+            remainingHours: REQUIRED_WEEKLY_HOURS,
+            days: [],
+            userId: user.uid
+          };
+          const weekId = await firebaseService.createWeek(newWeek, user.uid);
+          week = { ...newWeek, id: weekId };
+        }
+        setCurrentWeek(week);
+        setSelectedDate(todayStr);
+        const day = await firebaseService.getDayByDate(todayStr, user.uid);
+        setSelectedDayRecord(day);
     };
     loadWeek();
   }, []);
 
-  // Cambiar día seleccionado
   const handleSelectDay = async (date: string) => {
     setSelectedDate(date);
     const day = await firebaseService.getDayByDate(date, user.uid);
     setSelectedDayRecord(day);
-    // Limpiar campos de entrada para días nuevos
     if (!day) {
       setEntryTime('');
       setExitTime('');
     }
   };
 
-  // Abrir modal de edición
   const handleEditDay = () => {
     if (selectedDayRecord) {
       setEditingDay(selectedDayRecord);
@@ -79,22 +72,18 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     }
   };
 
-  // Cerrar modal de edición
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     setEditingDay(null);
     setEditEntryTime('');
     setEditExitTime('');
   };
-
-  // Guardar cambios del día editado
   const handleSaveEdit = async () => {
     if (!editingDay || !currentWeek) return;
 
     try {
       const totalHours = calculateHoursWorked(editEntryTime, editExitTime);
       
-      // Actualizar el día en Firebase
       await firebaseService.updateDay(editingDay.id, {
         entryTime: editEntryTime,
         exitTime: editExitTime,
@@ -104,7 +93,6 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
         isComplete: totalHours >= MINIMUM_DAILY_HOURS
       });
 
-      // Actualizar el estado local
       const updatedDay = {
         ...editingDay,
         entryTime: editEntryTime,
@@ -123,7 +111,6 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     }
   };
 
-  // Marcar día como remoto
   const handleMarkAsRemote = async () => {
     if (!editingDay || !currentWeek) return;
 
@@ -155,7 +142,6 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     }
   };
 
-  // Marcar día como feriado
   const handleMarkAsHoliday = async () => {
     if (!editingDay || !currentWeek) return;
 
@@ -187,7 +173,6 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     }
   };
 
-  // Eliminar registro del día
   const handleDeleteDay = async () => {
     if (!editingDay || !currentWeek) return;
 
@@ -201,17 +186,15 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     }
   };
 
-  // Recalcular resumen semanal y actualizar semana en Firebase
+  // esto actualiza los totales de la semana
   const recalculateWeek = async () => {
     if (!currentWeek) return;
-    // Obtener todos los días de la semana
     const weekDays = getWeekDays(currentWeek.startDate).filter(d => !d.isWeekend);
     const days: DayRecord[] = [];
     for (const d of weekDays) {
       const day = await firebaseService.getDayByDate(d.date, user.uid);
       if (day) days.push(day);
     }
-    // Calcular totales
     const totalHours = days.reduce((sum, d) => sum + d.totalHours, 0);
     const completedDays = days.filter(d => d.isComplete).length;
     const absentDays = days.length - completedDays;
@@ -223,30 +206,23 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
       absentDays,
       remainingHours
     });
-    // Refrescar semana
     const updated = await firebaseService.getWeek(currentWeek.id);
     setCurrentWeek(updated);
   };
 
-  // Días de la semana actual (lunes a viernes)
   const weekDays = currentWeek ? getWeekDays(currentWeek.startDate).filter(d => !d.isWeekend) : [];
 
-  // Función para verificar si un día está completo/validado
   const isDayComplete = (date: string): DayRecord | null => {
     if (!currentWeek) return null;
     return currentWeek.days.find(day => day.date === date && day.isComplete) || null;
   };
 
-  // Formatear fecha del día seleccionado
   const formatSelectedDate = () => {
     if (!selectedDate) return '';
     const date = new Date(selectedDate);
     return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-
-
-  // Formatear rango de fechas de la semana
   const formatWeekRange = () => {
     if (!currentWeek) return '';
     const start = new Date(currentWeek.startDate);
@@ -254,27 +230,22 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     return `${start.getDate()} de ${start.toLocaleDateString('es-ES', { month: 'long' })} al ${end.getDate()} de ${end.toLocaleDateString('es-ES', { month: 'long' })}`;
   };
 
-  // Calcular progreso
   const progressPercentage = currentWeek ? Math.round((currentWeek.totalHours / REQUIRED_WEEKLY_HOURS) * 100) : 0;
   const remainingDays = currentWeek ? Math.max(0, 5 - currentWeek.completedDays) : 5;
   
-  // Calcular horas restantes considerando el mínimo de 5h por día
+  // aca calculo las horas que faltan (minimo 5h por dia para que cuente)
   const mathematicalRemainingHours = currentWeek ? Math.max(0, REQUIRED_WEEKLY_HOURS - currentWeek.totalHours) : REQUIRED_WEEKLY_HOURS;
   const minimumRequiredHours = remainingDays * MINIMUM_DAILY_HOURS;
   const remainingHours = remainingDays > 0 ? Math.max(mathematicalRemainingHours, minimumRequiredHours) : 0;
   
-  // El promedio necesario debe ser mínimo 5 horas por día (para marcar presencia)
   const mathematicalAverage = remainingDays > 0 ? mathematicalRemainingHours / remainingDays : 0;
   const averageNeeded = remainingDays > 0 ? Math.max(MINIMUM_DAILY_HOURS, mathematicalAverage) : 0;
-
-  // Registrar horario normal para día nuevo
   const handleRegisterTime = async () => {
     if (!currentWeek || !entryTime || !exitTime) return;
 
     try {
       const totalHours = calculateHoursWorked(entryTime, exitTime);
       
-      // Crear nuevo registro de día
       const newDay: Omit<DayRecord, 'id'> = {
         date: selectedDate,
         entryTime,
@@ -298,7 +269,6 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
     }
   };
 
-  // Marcar día nuevo como remoto o feriado
   const handleRegisterSpecialDay = async (type: 'holiday' | 'remote') => {
     if (!currentWeek) return;
 
@@ -722,11 +692,9 @@ const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displa
   );
 }
 
-// Componente principal de la aplicación
 function App() {
   const { user, loading } = useAuth();
 
-  // Mostrar loading mientras se verifica la autenticación
   if (loading) {
     return (
       <div className="app-bg">
@@ -738,12 +706,10 @@ function App() {
     );
   }
 
-  // Mostrar formulario de autenticación si no hay usuario
   if (!user) {
     return <AuthForm />;
   }
 
-  // Mostrar aplicación autenticada
   return <AuthenticatedApp user={user} />;
 }
 

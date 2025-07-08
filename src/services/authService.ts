@@ -13,16 +13,13 @@ import type { User } from '../types';
 const USERS_COLLECTION = 'users';
 
 export const authService = {
-  // Crear nueva cuenta
   async register(email: string, password: string, displayName: string): Promise<User> {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       
-      // Actualizar el perfil con el nombre
       await updateProfile(firebaseUser, { displayName });
       
-      // Crear documento del usuario en Firestore
       const userData: User = {
         uid: firebaseUser.uid,
         email: firebaseUser.email!,
@@ -39,19 +36,16 @@ export const authService = {
     }
   },
 
-  // Iniciar sesión
   async login(email: string, password: string): Promise<User> {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       
-      // Obtener datos del usuario desde Firestore
       const userDoc = await getDoc(doc(db, USERS_COLLECTION, firebaseUser.uid));
       
       if (userDoc.exists()) {
         return userDoc.data() as User;
       } else {
-        // Si no existe el documento, crearlo con los datos básicos
         const userData: User = {
           uid: firebaseUser.uid,
           email: firebaseUser.email!,
@@ -68,7 +62,6 @@ export const authService = {
     }
   },
 
-  // Cerrar sesión
   async logout(): Promise<void> {
     try {
       await signOut(auth);
@@ -77,17 +70,15 @@ export const authService = {
     }
   },
 
-  // Obtener usuario actual
   getCurrentUser(): FirebaseUser | null {
     return auth.currentUser;
   },
 
-  // Suscribirse a cambios de autenticación
   onAuthStateChanged(callback: (user: FirebaseUser | null) => void) {
     return onAuthStateChanged(auth, callback);
   },
 
-  // Convertir mensajes de error de Firebase a español
+  // aca traduzco los errores de firebase al español
   getErrorMessage(errorCode: string): string {
     switch (errorCode) {
       case 'auth/email-already-in-use':

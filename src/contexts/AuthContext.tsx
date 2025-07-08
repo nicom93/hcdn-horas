@@ -25,14 +25,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const unsubscribe = authService.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Obtener datos del usuario desde Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           
           if (userDoc.exists()) {
             const userData = userDoc.data() as User;
             setUser(userData);
           } else {
-            // Si no existe el documento, crear uno básico
             const userData: User = {
               uid: firebaseUser.uid,
               email: firebaseUser.email!,

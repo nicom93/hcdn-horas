@@ -19,7 +19,6 @@ const AuthForm = () => {
     e.preventDefault();
     setFormError(null);
 
-    // Validaciones básicas
     if (!email || !password) {
       setFormError('Todos los campos son requeridos');
       return;
@@ -47,7 +46,6 @@ const AuthForm = () => {
         await register(email, password, displayName);
       }
     } catch (error) {
-      // El error ya se maneja en el contexto
       console.error('Error en autenticación:', error);
     }
   };

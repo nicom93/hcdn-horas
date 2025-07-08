@@ -1,4 +1,3 @@
-// Reset y variables globales
 * {
   box-sizing: border-box;
   margin: 0;
@@ -11,15 +10,12 @@ body {
   color: #333;
   background-color: #f8f9fa;
 }
-
-// Layout principal
 .app-bg {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem;
 }
 
-// Loading container
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -55,7 +51,6 @@ body {
   margin: 0 auto;
 }
 
-// Header del usuario
 .user-header {
   display: flex;
   justify-content: space-between;
@@ -100,7 +95,6 @@ body {
   }
 }
 
-// Header principal
 .main-header {
   text-align: center;
   margin-bottom: 40px;
@@ -127,7 +121,6 @@ body {
   }
 }
 
-// Navegación de semanas
 .week-navigation {
   background: white;
   border-radius: 16px;
@@ -213,7 +206,6 @@ body {
   }
 }
 
-// Cards principales
 .cards-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -253,7 +245,6 @@ body {
   }
 }
 
-// Card Registrar Horas
 .register-card {
   .weekdays-grid {
     display: grid;
@@ -281,7 +272,6 @@ body {
       background: #f7fafc;
     }
     
-    // Día seleccionado (verde)
     &.selected {
       background: #48bb78;
       border-color: #48bb78;
@@ -443,7 +433,6 @@ body {
   }
 }
 
-// Card Resumen Semanal
 .summary-card {
   .summary-header {
     margin-bottom: 24px;
