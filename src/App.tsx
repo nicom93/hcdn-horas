@@ -4,9 +4,13 @@ import { firebaseService } from './services/firebaseService';
 import { getCurrentWeekInfo, getWeekDays, calculateHoursWorked, REMOTE_HOLIDAY_HOURS, REQUIRED_WEEKLY_HOURS, MINIMUM_DAILY_HOURS, getTodayLocalDate } from './utils/dateUtils';
 import type { WeekRecord, DayRecord } from './types';
 import WeekHistory from './components/WeekHistory';
+import AuthForm from './components/AuthForm';
+import { useAuth } from './hooks/useAuth';
 import './App.scss';
 
-function App() {
+// Componente principal de la aplicación autenticada
+const AuthenticatedApp = ({ user }: { user: { uid: string; email: string; displayName?: string } }) => {
+  const { logout } = useAuth();
   const [currentWeek, setCurrentWeek] = useState<WeekRecord | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedDayRecord, setSelectedDayRecord] = useState<DayRecord | null>(null);
@@ -26,7 +30,7 @@ function App() {
       const todayStr = weekInfo.weekStart <= today && today <= weekInfo.weekEnd
         ? getTodayLocalDate()
         : weekInfo.startDate;
-      let week = await firebaseService.getCurrentWeek(weekInfo.year, weekInfo.weekNumber);
+      let week = await firebaseService.getCurrentWeek(weekInfo.year, weekInfo.weekNumber, user.uid);
       if (!week) {
         // Crear semana vacía
         const newWeek: Omit<WeekRecord, 'id'> = {
@@ -38,15 +42,16 @@ function App() {
           completedDays: 0,
           absentDays: 0,
           remainingHours: REQUIRED_WEEKLY_HOURS,
-          days: []
+          days: [],
+          userId: user.uid
         };
-        const weekId = await firebaseService.createWeek(newWeek);
+        const weekId = await firebaseService.createWeek(newWeek, user.uid);
         week = { ...newWeek, id: weekId };
       }
       setCurrentWeek(week);
       setSelectedDate(todayStr);
       // Cargar registro del día seleccionado
-      const day = await firebaseService.getDayByDate(todayStr);
+      const day = await firebaseService.getDayByDate(todayStr, user.uid);
       setSelectedDayRecord(day);
     };
     loadWeek();
@@ -55,7 +60,7 @@ function App() {
   // Cambiar día seleccionado
   const handleSelectDay = async (date: string) => {
     setSelectedDate(date);
-    const day = await firebaseService.getDayByDate(date);
+    const day = await firebaseService.getDayByDate(date, user.uid);
     setSelectedDayRecord(day);
     // Limpiar campos de entrada para días nuevos
     if (!day) {
@@ -203,7 +208,7 @@ function App() {
     const weekDays = getWeekDays(currentWeek.startDate).filter(d => !d.isWeekend);
     const days: DayRecord[] = [];
     for (const d of weekDays) {
-      const day = await firebaseService.getDayByDate(d.date);
+      const day = await firebaseService.getDayByDate(d.date, user.uid);
       if (day) days.push(day);
     }
     // Calcular totales
@@ -277,10 +282,11 @@ function App() {
         totalHours,
         isHoliday: false,
         isRemote: false,
-        isComplete: totalHours >= MINIMUM_DAILY_HOURS
+        isComplete: totalHours >= MINIMUM_DAILY_HOURS,
+        userId: user.uid
       };
 
-      const dayId = await firebaseService.createDay(newDay);
+      const dayId = await firebaseService.createDay(newDay, user.uid);
       const createdDay = { ...newDay, id: dayId };
       
       setSelectedDayRecord(createdDay);
@@ -304,10 +310,11 @@ function App() {
         totalHours: REMOTE_HOLIDAY_HOURS,
         isHoliday: type === 'holiday',
         isRemote: type === 'remote',
-        isComplete: true
+        isComplete: true,
+        userId: user.uid
       };
 
-      const dayId = await firebaseService.createDay(newDay);
+      const dayId = await firebaseService.createDay(newDay, user.uid);
       const createdDay = { ...newDay, id: dayId };
       
       setSelectedDayRecord(createdDay);
@@ -328,6 +335,16 @@ function App() {
           <p className="main-subtitle">Registra tus horas de trabajo y monitorea tu progreso semanal</p>
           <p className="current-date">{formatCurrentDate()}</p>
         </div> */}
+
+        {/* Header con usuario y logout */}
+        <div className="user-header">
+          <div className="user-info">
+            <span className="user-name">👋 Hola, {user.displayName || user.email}</span>
+          </div>
+          <button className="logout-btn" onClick={logout}>
+            Cerrar Sesión
+          </button>
+        </div>
 
         {/* Navegación de Semanas */}
         <div className="week-navigation">
@@ -592,7 +609,7 @@ function App() {
         </div>
 
         {/* Historial de Semanas */}
-        <WeekHistory currentWeekId={currentWeek?.id} />
+        <WeekHistory currentWeekId={currentWeek?.id} userId={user.uid} />
 
         {/* Modal de Edición */}
         {showEditModal && editingDay && (
@@ -703,6 +720,31 @@ function App() {
       </div>
     </div>
   );
+}
+
+// Componente principal de la aplicación
+function App() {
+  const { user, loading } = useAuth();
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (loading) {
+    return (
+      <div className="app-bg">
+        <div className="loading-container">
+          <div className="loading-spinner">⏳</div>
+          <p>Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar formulario de autenticación si no hay usuario
+  if (!user) {
+    return <AuthForm />;
+  }
+
+  // Mostrar aplicación autenticada
+  return <AuthenticatedApp user={user} />;
 }
 
 export default App;

@@ -18,8 +18,9 @@ const DAY_COLLECTION = 'days';
 
 export const firebaseService = {
   // Week operations
-  async createWeek(weekData: Omit<WeekRecord, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, WEEK_COLLECTION), weekData);
+  async createWeek(weekData: Omit<WeekRecord, 'id'>, userId: string): Promise<string> {
+    const weekWithUser = { ...weekData, userId };
+    const docRef = await addDoc(collection(db, WEEK_COLLECTION), weekWithUser);
     return docRef.id;
   },
 
@@ -38,11 +39,12 @@ export const firebaseService = {
     return null;
   },
 
-  async getCurrentWeek(year: number, weekNumber: number): Promise<WeekRecord | null> {
+  async getCurrentWeek(year: number, weekNumber: number, userId: string): Promise<WeekRecord | null> {
     const q = query(
       collection(db, WEEK_COLLECTION),
       where('year', '==', year),
       where('weekNumber', '==', weekNumber),
+      where('userId', '==', userId),
       limit(1)
     );
     
@@ -54,9 +56,12 @@ export const firebaseService = {
     return null;
   },
 
-  async getAllWeeks(): Promise<WeekRecord[]> {
-    // Consulta simplificada sin orderBy múltiple para evitar requerir índice
-    const q = query(collection(db, WEEK_COLLECTION));
+  async getAllWeeks(userId: string): Promise<WeekRecord[]> {
+    // Consulta filtrada por usuario
+    const q = query(
+      collection(db, WEEK_COLLECTION),
+      where('userId', '==', userId)
+    );
     
     const querySnapshot = await getDocs(q);
     const weeks = querySnapshot.docs.map(doc => ({
@@ -74,8 +79,9 @@ export const firebaseService = {
   },
 
   // Day operations
-  async createDay(dayData: Omit<DayRecord, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, DAY_COLLECTION), dayData);
+  async createDay(dayData: Omit<DayRecord, 'id'>, userId: string): Promise<string> {
+    const dayWithUser = { ...dayData, userId };
+    const docRef = await addDoc(collection(db, DAY_COLLECTION), dayWithUser);
     return docRef.id;
   },
 
@@ -94,10 +100,11 @@ export const firebaseService = {
     return null;
   },
 
-  async getDayByDate(date: string): Promise<DayRecord | null> {
+  async getDayByDate(date: string, userId: string): Promise<DayRecord | null> {
     const q = query(
       collection(db, DAY_COLLECTION),
       where('date', '==', date),
+      where('userId', '==', userId),
       limit(1)
     );
     

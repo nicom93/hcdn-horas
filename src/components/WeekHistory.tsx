@@ -7,9 +7,10 @@ import type { WeekRecord } from '../types';
 
 interface WeekHistoryProps {
   currentWeekId?: string;
+  userId: string;
 }
 
-const WeekHistory: React.FC<WeekHistoryProps> = ({ currentWeekId }) => {
+const WeekHistory: React.FC<WeekHistoryProps> = ({ currentWeekId, userId }) => {
   const [weeks, setWeeks] = useState<WeekRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -22,7 +23,7 @@ const WeekHistory: React.FC<WeekHistoryProps> = ({ currentWeekId }) => {
   const loadWeekHistory = async () => {
     try {
       setLoading(true);
-      const allWeeks = await firebaseService.getAllWeeks();
+      const allWeeks = await firebaseService.getAllWeeks(userId);
       // Filter out current week if provided
       const filteredWeeks = currentWeekId 
         ? allWeeks.filter(week => week.id !== currentWeekId)
