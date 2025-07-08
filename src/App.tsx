@@ -239,11 +239,7 @@ function App() {
     return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  // Formatear fecha actual
-  const formatCurrentDate = () => {
-    const today = new Date();
-    return `Hoy es ${today.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-  };
+
 
   // Formatear rango de fechas de la semana
   const formatWeekRange = () => {
