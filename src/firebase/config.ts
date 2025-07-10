@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
+// forzar deployment - credenciales hardcodeadas para evitar undefined en producción
 const firebaseConfig = {
   apiKey: "AIzaSyD-_w6b2HnuvlTpwscggZEPV-rUF0_rMdA",
   authDomain: "hcdn-horas.firebaseapp.com",
