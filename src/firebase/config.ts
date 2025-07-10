@@ -3,12 +3,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyD-_w6b2HnuvlTpwscggZEPV-rUF0_rMdA",
+  authDomain: "hcdn-horas.firebaseapp.com",
+  projectId: "hcdn-horas",
+  storageBucket: "hcdn-horas.firebasestorage.app",
+  messagingSenderId: "707874092128",
+  appId: "1:707874092128:web:b544c0609902eb56513f05"
 };
 
 console.log('Inicializando Firebase con configuración:', firebaseConfig);
