@@ -2,26 +2,39 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// Firebase config - deployment timestamp: 2024-01-01
+// Firebase config usando variables de entorno
 const firebaseConfig = {
-  apiKey: "AIzaSyD-_w6b2HnuvlTpwscggZEPV-rUF0_rMdA",
-  authDomain: "hcdn-horas.firebaseapp.com",
-  projectId: "hcdn-horas",
-  storageBucket: "hcdn-horas.firebasestorage.app",
-  messagingSenderId: "707874092128",
-  appId: "1:707874092128:web:b544c0609902eb56513f05"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-console.log('🔥 Firebase Config Debug - todas las keys:', Object.keys(firebaseConfig));
-console.log('🔥 Firebase Config Debug - apiKey:', firebaseConfig.apiKey);
-console.log('🔥 Firebase Config Debug - projectId:', firebaseConfig.projectId);
-console.log('Inicializando Firebase con configuración:', firebaseConfig);
+// Validar que todas las variables de entorno estén configuradas
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN', 
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID'
+];
+
+const missingVars = requiredEnvVars.filter(varName => !import.meta.env[varName]);
+if (missingVars.length > 0) {
+  throw new Error(`Faltan las siguientes variables de entorno de Firebase: ${missingVars.join(', ')}`);
+}
+
+console.log('🔥 Inicializando Firebase con variables de entorno');
+console.log('🔥 Project ID:', firebaseConfig.projectId);
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-console.log('Firebase inicializado correctamente');
+console.log('✅ Firebase inicializado correctamente');
 
 export { db, auth };
 export default app; 
